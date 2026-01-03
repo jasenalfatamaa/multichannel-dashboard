@@ -1,17 +1,17 @@
 
 import React, { useState } from 'react';
 import { Customer } from '../types';
-import { 
-  Search, 
-  Plus, 
-  MoreVertical, 
-  Mail, 
-  Phone, 
-  Download, 
-  Users, 
-  X, 
-  UserPlus, 
-  MessageSquare, 
+import {
+  Search,
+  Plus,
+  MoreVertical,
+  Mail,
+  Phone,
+  Download,
+  Users,
+  X,
+  UserPlus,
+  MessageSquare,
   Sparkles,
   User,
   Trash2,
@@ -46,11 +46,11 @@ const rowVariants = {
   visible: { opacity: 1, y: 0 }
 };
 
-const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({ 
-  customers, 
-  onAddCustomer, 
+const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
+  customers,
+  onAddCustomer,
   onDeleteCustomer,
-  onStartChat 
+  onStartChat
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -64,8 +64,8 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
     tag: 'New'
   });
 
-  const filtered = customers.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filtered = customers.filter(c =>
+    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -110,7 +110,7 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto relative px-2 sm:px-0">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4"
@@ -120,15 +120,15 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
           <p className="text-slate-500 mt-1 text-sm md:text-base font-medium">Unified database and smart AI tagging system.</p>
         </div>
         <div className="flex gap-2 md:gap-3">
-           <motion.button 
+          <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 sm:py-2 bg-white border border-slate-200 rounded-xl text-[10px] sm:text-xs font-black text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest"
-           >
+          >
             <Download className="w-4 h-4" />
             Export
           </motion.button>
-          <motion.button 
+          <motion.button
             onClick={() => setIsModalOpen(true)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -140,7 +140,7 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
         </div>
       </motion.div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2 }}
@@ -149,7 +149,7 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
         <div className="p-4 md:p-6 border-b border-slate-100 flex items-center justify-between bg-white/50 backdrop-blur-sm sticky top-0 z-10">
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input 
+            <input
               type="text"
               placeholder="Search by name, email..."
               className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-200 transition-all"
@@ -161,14 +161,14 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
 
         {/* MOBILE & TABLET LIST VIEW (Hidden on md and up) */}
         <div className="block md:hidden">
-           <motion.div 
+          <motion.div
             variants={tableVariants}
             initial="hidden"
             animate="visible"
             className="divide-y divide-slate-50"
-           >
+          >
             {filtered.map((customer) => (
-              <motion.div 
+              <motion.div
                 key={customer.id}
                 variants={rowVariants}
                 whileTap={{ backgroundColor: '#f1f5f9' }}
@@ -187,17 +187,17 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
                   <div>
                     <h3 className="font-black text-slate-800 text-sm tracking-tight">{customer.name}</h3>
                     <div className="flex items-center gap-2 mt-1">
-                       <span className={`px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest ${getTagColor(customer.tags[0])}`}>
-                         {customer.tags[0]}
-                       </span>
-                       <span className="text-[9px] font-bold text-slate-400">• {customer.source === 'chat' ? 'AI Sync' : 'Manual'}</span>
+                      <span className={`px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest ${getTagColor(customer.tags[0])}`}>
+                        {customer.tags[0]}
+                      </span>
+                      <span className="text-[9px] font-bold text-slate-400">• {customer.source === 'chat' ? 'AI Sync' : 'Manual'}</span>
                     </div>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-300" />
               </motion.div>
             ))}
-           </motion.div>
+          </motion.div>
         </div>
 
         {/* DESKTOP TABLE VIEW (Hidden on mobile/tablet) */}
@@ -213,7 +213,7 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Action</th>
               </tr>
             </thead>
-            <motion.tbody 
+            <motion.tbody
               variants={tableVariants}
               initial="hidden"
               animate="visible"
@@ -221,8 +221,8 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
             >
               <AnimatePresence mode="popLayout">
                 {filtered.map((customer) => (
-                  <motion.tr 
-                    key={customer.id} 
+                  <motion.tr
+                    key={customer.id}
                     variants={rowVariants}
                     layout
                     whileHover={{ backgroundColor: '#f8fafc' }}
@@ -235,17 +235,17 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                       {customer.source === 'chat' ? (
-                         <div className="flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg w-fit">
-                            <MessageSquare className="w-3 h-3" />
-                            <span className="text-[9px] font-black uppercase tracking-widest">Chat Sync</span>
-                         </div>
-                       ) : (
+                      {customer.source === 'chat' ? (
+                        <div className="flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg w-fit">
+                          <MessageSquare className="w-3 h-3" />
+                          <span className="text-[9px] font-black uppercase tracking-widest">Chat Sync</span>
+                        </div>
+                      ) : (
                         <div className="flex items-center gap-1.5 text-slate-500 bg-slate-100 px-2 py-1 rounded-lg w-fit">
-                            <UserPlus className="w-3 h-3" />
-                            <span className="text-[9px] font-black uppercase tracking-widest">Manual</span>
-                         </div>
-                       )}
+                          <UserPlus className="w-3 h-3" />
+                          <span className="text-[9px] font-black uppercase tracking-widest">Manual</span>
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-5">
                       <div className="space-y-1">
@@ -264,8 +264,8 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
                         {customer.tags.map(tag => {
                           const isAiTag = customer.source === 'chat';
                           return (
-                            <span 
-                              key={tag} 
+                            <span
+                              key={tag}
                               className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase border tracking-widest ${getTagColor(tag)}`}
                             >
                               {isAiTag && <Sparkles className="w-2.5 h-2.5" />}
@@ -282,14 +282,14 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
                     </td>
                     <td className="px-6 py-5">
                       <div className="relative">
-                        <button 
+                        <button
+                          aria-label="Open menu"
                           onClick={(e) => {
                             e.stopPropagation();
                             setActiveMenuId(activeMenuId === customer.id ? null : customer.id);
                           }}
-                          className={`p-2 rounded-lg transition-all ${
-                            activeMenuId === customer.id ? 'bg-indigo-100 text-indigo-600 shadow-inner' : 'hover:bg-indigo-50 text-slate-300 hover:text-indigo-600'
-                          }`}
+                          className={`p-2 rounded-lg transition-all ${activeMenuId === customer.id ? 'bg-indigo-100 text-indigo-600 shadow-inner' : 'hover:bg-indigo-50 text-slate-300 hover:text-indigo-600'
+                            }`}
                         >
                           <MoreVertical className="w-5 h-5" />
                         </button>
@@ -297,20 +297,20 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
                         <AnimatePresence>
                           {activeMenuId === customer.id && (
                             <>
-                              <motion.div 
+                              <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 onClick={() => setActiveMenuId(null)}
                                 className="fixed inset-0 z-[60]"
                               />
-                              <motion.div 
+                              <motion.div
                                 initial={{ opacity: 0, scale: 0.9, y: 10, x: -10 }}
                                 animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, y: 10 }}
                                 className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[70] overflow-hidden py-2"
                               >
-                                <button 
+                                <button
                                   onClick={() => {
                                     setViewingCustomer(customer);
                                     setActiveMenuId(null);
@@ -320,7 +320,7 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
                                   <User className="w-4 h-4 text-slate-400" />
                                   <span className="text-xs font-bold">View Profile</span>
                                 </button>
-                                <button 
+                                <button
                                   onClick={() => {
                                     onStartChat?.(customer.name);
                                     setActiveMenuId(null);
@@ -331,7 +331,7 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
                                   <span className="text-xs font-bold">Start Chat</span>
                                 </button>
                                 <div className="h-px bg-slate-50 my-1 mx-2" />
-                                <button 
+                                <button
                                   onClick={() => {
                                     setDeletingCustomer(customer);
                                     setActiveMenuId(null);
@@ -355,13 +355,13 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
         </div>
 
         {filtered.length === 0 && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="py-10 sm:py-20 text-center"
           >
-             <Users className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-4 opacity-10 text-slate-400" />
-             <p className="text-[10px] sm:text-sm font-black uppercase tracking-[0.2em] text-slate-400">No customers found</p>
+            <Users className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-4 opacity-10 text-slate-400" />
+            <p className="text-[10px] sm:text-sm font-black uppercase tracking-[0.2em] text-slate-400">No customers found</p>
           </motion.div>
         )}
       </motion.div>
@@ -370,14 +370,14 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -396,41 +396,41 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
               <form onSubmit={handleAdd} className="space-y-4 sm:space-y-6">
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="e.g. Andi Wijaya"
                     className="w-full px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-50 transition-all font-medium"
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     required
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="andi@company.com"
                     className="w-full px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-50 transition-all font-medium"
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="+62812..."
                     className="w-full px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-50 transition-all font-medium"
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Initial Tag</label>
-                  <select 
+                  <select
                     value={formData.tag}
-                    onChange={(e) => setFormData({...formData, tag: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
                     className="w-full px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-50 transition-all font-medium appearance-none"
                   >
                     <option>New</option>
@@ -439,8 +439,8 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
                     <option>Follow-up</option>
                   </select>
                 </div>
-                
-                <motion.button 
+
+                <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
@@ -458,14 +458,14 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
       <AnimatePresence>
         {viewingCustomer && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-0 sm:p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setViewingCustomer(null)}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
             />
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 100 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 100 }}
@@ -473,105 +473,105 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
             >
               {/* Profile Header Background */}
               <div className="h-32 bg-indigo-600 relative overflow-hidden">
-                 <motion.div 
+                <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                   className="absolute -top-20 -right-20 w-64 h-64 bg-indigo-400/30 rounded-full blur-3xl"
-                 />
+                />
               </div>
 
               <div className="px-6 sm:px-8 pb-10 -mt-16 relative">
-                 <div className="flex items-end justify-between mb-8">
-                    <div className="relative">
-                      <img 
-                        src={viewingCustomer.avatar} 
-                        className="w-28 h-28 sm:w-32 sm:h-32 rounded-[32px] sm:rounded-[40px] object-cover border-4 border-white shadow-2xl ring-1 ring-slate-100" 
-                        alt="" 
-                      />
-                      <div className={`absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-white shadow-sm ${viewingCustomer.source === 'chat' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-                    </div>
-                    <div className="flex gap-2">
-                       <motion.button 
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => {
-                          onStartChat?.(viewingCustomer.name);
-                          setViewingCustomer(null);
-                        }}
-                        className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl hover:bg-indigo-100 transition-colors shadow-sm"
-                       >
-                         <MessageSquare className="w-5 h-5" />
-                       </motion.button>
-                       <motion.button 
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setDeletingCustomer(viewingCustomer)}
-                        className="p-3 bg-rose-50 text-rose-600 rounded-2xl hover:bg-rose-100 transition-colors shadow-sm"
-                       >
-                         <Trash2 className="w-5 h-5" />
-                       </motion.button>
-                    </div>
-                 </div>
+                <div className="flex items-end justify-between mb-8">
+                  <div className="relative">
+                    <img
+                      src={viewingCustomer.avatar}
+                      className="w-28 h-28 sm:w-32 sm:h-32 rounded-[32px] sm:rounded-[40px] object-cover border-4 border-white shadow-2xl ring-1 ring-slate-100"
+                      alt=""
+                    />
+                    <div className={`absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-white shadow-sm ${viewingCustomer.source === 'chat' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                  </div>
+                  <div className="flex gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        onStartChat?.(viewingCustomer.name);
+                        setViewingCustomer(null);
+                      }}
+                      className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl hover:bg-indigo-100 transition-colors shadow-sm"
+                    >
+                      <MessageSquare className="w-5 h-5" />
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setDeletingCustomer(viewingCustomer)}
+                      className="p-3 bg-rose-50 text-rose-600 rounded-2xl hover:bg-rose-100 transition-colors shadow-sm"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </motion.button>
+                  </div>
+                </div>
 
-                 <div className="mb-8">
-                    <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{viewingCustomer.name}</h2>
-                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                       {viewingCustomer.tags.map(tag => (
-                         <span key={tag} className={`flex items-center gap-1 px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase border tracking-widest ${getTagColor(tag)}`}>
-                            {viewingCustomer.source === 'chat' && <Sparkles className="w-3 h-3" />}
-                            {tag}
-                         </span>
-                       ))}
-                    </div>
-                 </div>
+                <div className="mb-8">
+                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{viewingCustomer.name}</h2>
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    {viewingCustomer.tags.map(tag => (
+                      <span key={tag} className={`flex items-center gap-1 px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase border tracking-widest ${getTagColor(tag)}`}>
+                        {viewingCustomer.source === 'chat' && <Sparkles className="w-3 h-3" />}
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
 
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                       <div className="group">
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                            <Mail className="w-3 h-3" /> Email Address
-                          </p>
-                          <p className="text-sm font-bold text-slate-700 break-all">{viewingCustomer.email}</p>
-                       </div>
-                       <div className="group">
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                            <Phone className="w-3 h-3" /> Phone Number
-                          </p>
-                          <p className="text-sm font-bold text-slate-700">{viewingCustomer.phone}</p>
-                       </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="group">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                        <Mail className="w-3 h-3" /> Email Address
+                      </p>
+                      <p className="text-sm font-bold text-slate-700 break-all">{viewingCustomer.email}</p>
                     </div>
-                    <div className="space-y-4">
-                       <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                            <Clock className="w-3 h-3" /> Last Active
-                          </p>
-                          <p className="text-sm font-bold text-slate-700">
-                            {viewingCustomer.lastActive.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                          </p>
-                       </div>
-                       <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                            <ShieldCheck className="w-3 h-3" /> Verification Source
-                          </p>
-                          <div className={`flex items-center gap-1.5 text-[10px] sm:text-xs font-black uppercase tracking-widest ${viewingCustomer.source === 'chat' ? 'text-indigo-600' : 'text-slate-400'}`}>
-                            {viewingCustomer.source === 'chat' ? 'OmniAI Verified Chat' : 'Manual Entry'}
-                          </div>
-                       </div>
+                    <div className="group">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                        <Phone className="w-3 h-3" /> Phone Number
+                      </p>
+                      <p className="text-sm font-bold text-slate-700">{viewingCustomer.phone}</p>
                     </div>
-                 </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                        <Clock className="w-3 h-3" /> Last Active
+                      </p>
+                      <p className="text-sm font-bold text-slate-700">
+                        {viewingCustomer.lastActive.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                        <ShieldCheck className="w-3 h-3" /> Verification Source
+                      </p>
+                      <div className={`flex items-center gap-1.5 text-[10px] sm:text-xs font-black uppercase tracking-widest ${viewingCustomer.source === 'chat' ? 'text-indigo-600' : 'text-slate-400'}`}>
+                        {viewingCustomer.source === 'chat' ? 'OmniAI Verified Chat' : 'Manual Entry'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                 <div className="mt-10 p-6 bg-slate-50 rounded-[24px] sm:rounded-[32px] border border-slate-100">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                       <Calendar className="w-3 h-3" /> Recent Interaction
-                    </h4>
-                    <p className="text-xs font-medium text-slate-600 leading-relaxed italic">
-                      "System automatically analyzed customer intent as {viewingCustomer.tags[0]}. 
-                      Customer reached via {viewingCustomer.source === 'chat' ? 'Instant Messenger' : 'CRM Dashboard'}."
-                    </p>
-                 </div>
+                <div className="mt-10 p-6 bg-slate-50 rounded-[24px] sm:rounded-[32px] border border-slate-100">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <Calendar className="w-3 h-3" /> Recent Interaction
+                  </h4>
+                  <p className="text-xs font-medium text-slate-600 leading-relaxed italic">
+                    "System automatically analyzed customer intent as {viewingCustomer.tags[0]}.
+                    Customer reached via {viewingCustomer.source === 'chat' ? 'Instant Messenger' : 'CRM Dashboard'}."
+                  </p>
+                </div>
               </div>
 
-              <button 
+              <button
                 onClick={() => setViewingCustomer(null)}
                 className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/40 text-white rounded-full transition-colors"
               >
@@ -586,14 +586,14 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
       <AnimatePresence>
         {deletingCustomer && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setDeletingCustomer(null)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -602,14 +602,14 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
               <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <AlertTriangle className="w-8 h-8 text-rose-500" />
               </div>
-              
+
               <h3 className="text-xl font-black text-slate-900 tracking-tight mb-2">Delete Contact?</h3>
               <p className="text-slate-500 text-sm font-medium leading-relaxed mb-8">
                 Are you sure you want to remove <span className="text-slate-800 font-bold">{deletingCustomer.name}</span>? This action is permanent and cannot be undone.
               </p>
 
               <div className="flex flex-col gap-3">
-                <motion.button 
+                <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={confirmDelete}
@@ -617,7 +617,7 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
                 >
                   Delete Permanently
                 </motion.button>
-                <motion.button 
+                <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setDeletingCustomer(null)}
