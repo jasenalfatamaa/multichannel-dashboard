@@ -15,13 +15,13 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, onLogout })
   return (
     <>
       {/* DESKTOP SIDEBAR */}
-      <motion.aside 
+      <motion.aside
         initial={{ x: -80 }}
         animate={{ x: 0 }}
         className="hidden md:flex w-20 h-screen bg-white border-r border-slate-200 flex-col items-center py-8 z-50"
       >
         <div className="mb-10">
-          <motion.div 
+          <motion.div
             whileHover={{ rotate: 10, scale: 1.1 }}
             className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 cursor-pointer"
           >
@@ -41,11 +41,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, onLogout })
                 transition={{ delay: idx * 0.1 }}
                 onClick={() => onViewChange(item.id as View)}
                 title={item.label}
-                className={`p-3 rounded-xl transition-all duration-200 group relative ${
-                  isActive 
-                    ? 'bg-indigo-50 text-indigo-600 shadow-sm' 
+                className={`p-3 rounded-xl transition-all duration-200 group relative ${isActive
+                    ? 'bg-indigo-50 text-indigo-600 shadow-sm'
                     : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
-                }`}
+                  }`}
               >
                 <motion.div
                   whileHover={{ scale: 1.2 }}
@@ -53,14 +52,14 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, onLogout })
                 >
                   <Icon className="w-6 h-6" />
                 </motion.div>
-                
+
                 {isActive && (
-                  <motion.span 
+                  <motion.span
                     layoutId="sidebar-indicator"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-600 rounded-r-full" 
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-600 rounded-r-full"
                   />
                 )}
-                
+
                 <span className="absolute left-16 top-1/2 -translate-y-1/2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
                   {item.label}
                 </span>
@@ -79,10 +78,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, onLogout })
             Logout
           </span>
         </motion.button>
-      </aside>
+      </motion.aside>
 
       {/* MOBILE BOTTOM NAVIGATION */}
-      <motion.nav 
+      <motion.nav
         initial={{ y: 80 }}
         animate={{ y: 0 }}
         className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-200 flex items-center justify-around px-4 z-[100] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]"
@@ -94,17 +93,16 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, onLogout })
             <button
               key={item.id}
               onClick={() => onViewChange(item.id as View)}
-              className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-                isActive ? 'text-indigo-600' : 'text-slate-400'
-              }`}
+              className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${isActive ? 'text-indigo-600' : 'text-slate-400'
+                }`}
             >
-              <motion.div 
+              <motion.div
                 whileTap={{ scale: 0.8 }}
                 className={`p-1.5 rounded-lg relative ${isActive ? 'bg-indigo-50' : ''}`}
               >
                 <Icon className="w-5 h-5" />
                 {isActive && (
-                  <motion.div 
+                  <motion.div
                     layoutId="mobile-nav-active"
                     className="absolute -inset-1 border-2 border-indigo-600 rounded-lg"
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
