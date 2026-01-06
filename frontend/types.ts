@@ -35,6 +35,7 @@ export interface Conversation {
 
 export interface Customer {
   id: string;
+  external_id: string;
   name: string;
   email: string;
   phone: string;
@@ -45,3 +46,11 @@ export interface Customer {
 }
 
 export type View = 'login' | 'dashboard' | 'chats' | 'contacts' | 'training' | 'settings';
+
+export interface KnowledgeSource {
+  id: string;
+  name: string;
+  size: string;
+  status: string;
+  created_at: Date;
+}

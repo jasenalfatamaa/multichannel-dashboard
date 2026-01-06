@@ -1,17 +1,18 @@
 
 import React from 'react';
 import { LogOut } from 'lucide-react';
-import { View } from '../types';
+import { View, UserSession } from '../types';
 import { NAV_ITEMS } from '../constants';
 import { motion } from 'framer-motion';
 
 interface SidebarProps {
   activeView: View;
   onViewChange: (view: View) => void;
+  userSession: UserSession | null;
   onLogout: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, onLogout }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, userSession, onLogout }) => {
   return (
     <>
       {/* DESKTOP SIDEBAR */}
@@ -42,8 +43,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, onLogout })
                 onClick={() => onViewChange(item.id as View)}
                 title={item.label}
                 className={`p-3 rounded-xl transition-all duration-200 group relative ${isActive
-                    ? 'bg-indigo-50 text-indigo-600 shadow-sm'
-                    : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
+                  ? 'bg-indigo-50 text-indigo-600 shadow-sm'
+                  : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
                   }`}
               >
                 <motion.div

@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
-import { 
-  Lock, 
-  Mail, 
-  ArrowRight, 
-  ShieldCheck, 
+import {
+  Lock,
+  Mail,
+  ArrowRight,
+  ShieldCheck,
   Sparkles,
   MessageCircle,
   Instagram,
@@ -35,6 +35,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { UserSession } from '../types';
+import { authService } from '../services/apiService';
 
 interface LoginProps {
   onLogin: (session: UserSession) => void;
@@ -46,91 +47,24 @@ const STORAGE_KEY = 'omniai_user_profile';
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
-  const [email, setEmail] = useState('admin@omniai.com');
-  const [password, setPassword] = useState('password123');
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
-    // Daftar statis bawaan
-    const DUMMY_USERS = [
-      {
-        email: 'super@omniai.com',
-        password: 'password123',
-        name: 'Super Admin Utama',
-        role: 'super_admin' as const,
-        avatar: 'https://i.pravatar.cc/150?u=super'
-      },
-      {
-        email: 'admin@omniai.com',
-        password: 'password123',
-        name: 'Admin Regular',
-        role: 'admin' as const,
-        avatar: 'https://i.pravatar.cc/150?u=admin'
-      }
-    ];
-
-    setTimeout(() => {
-      // Ambil user yang ditambahkan dari localStorage
-      let teamUsers = [];
-      const savedTeam = localStorage.getItem(TEAM_KEY);
-      if (savedTeam) {
-        try {
-          teamUsers = JSON.parse(savedTeam);
-        } catch (e) {
-          console.error("Gagal memuat data tim");
-        }
-      }
-
-      // Gabungkan semua user yang tersedia
-      const allUsers = [...DUMMY_USERS, ...teamUsers];
-      
-      const foundUser = allUsers.find(u => u.email === email && u.password === password);
-      
-      if (foundUser) {
-        const session: UserSession = {
-          id: foundUser.id || Math.random().toString(36).substr(2, 9),
-          name: foundUser.name,
-          email: foundUser.email,
-          role: foundUser.role,
-          avatar: foundUser.avatar || 'https://i.pravatar.cc/150?u=user'
-        };
-
-        // Sinkronisasi informasi profil agar Settings menampilkan data yang benar
-        const currentProfile = localStorage.getItem(STORAGE_KEY);
-        let profileData = {
-          aiAutoReply: true,
-          aiTone: 'Friendly'
-        };
-
-        if (currentProfile) {
-          try {
-            const parsed = JSON.parse(currentProfile);
-            profileData = { ...profileData, ...parsed };
-          } catch (e) {}
-        }
-
-        // Update data identitas di profil berdasarkan user yang login
-        const updatedProfile = {
-          ...profileData,
-          name: foundUser.name,
-          email: foundUser.email,
-          avatar: foundUser.avatar || 'https://i.pravatar.cc/150?u=user'
-        };
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProfile));
-        localStorage.setItem('omniai_current_session', JSON.stringify(session));
-        
-        onLogin(session);
-      } else {
-        setError('Email atau password salah. Coba lagi atau gunakan akun dummy.');
-        setIsLoading(false);
-      }
-    }, 1200);
+    try {
+      const session = await authService.login(email, password);
+      onLogin(session);
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setError(err.response?.data?.detail || 'Email atau password salah. Coba lagi.');
+      setIsLoading(false);
+    }
   };
 
   const containerVariants: Variants = {
@@ -146,8 +80,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: { type: 'spring', stiffness: 100 }
     },
@@ -188,31 +122,31 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   return (
     <div className="h-screen w-full flex items-center justify-center bg-slate-50 relative overflow-hidden">
-      
+
       {/* --- BACKGROUND LAYER --- */}
       <div className="fixed inset-0 pointer-events-none z-0">
         {floatingIcons.map((item, idx) => (
           <motion.div
             key={idx}
             className="absolute text-indigo-600/40"
-            initial={{ 
-              left: item.x, 
-              top: item.y, 
+            initial={{
+              left: item.x,
+              top: item.y,
               opacity: 0,
               scale: 0.8
             }}
-            animate={{ 
-              opacity: [0.3, 0.6, 0.3], 
+            animate={{
+              opacity: [0.3, 0.6, 0.3],
               x: [-150, 150, -150],
               y: [-250, 250, -250],
               rotate: [0, 180, -180, 0],
               scale: [1, 1.2, 0.8, 1]
             }}
-            transition={{ 
-              duration: item.duration, 
-              repeat: Infinity, 
+            transition={{
+              duration: item.duration,
+              repeat: Infinity,
               ease: "easeInOut",
-              delay: item.delay 
+              delay: item.delay
             }}
           >
             <item.icon size={item.size} strokeWidth={1.4} />
@@ -226,7 +160,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         className="w-full max-w-xl p-1 bg-gradient-to-b from-white/95 to-white/70 backdrop-blur-3xl rounded-[32px] md:rounded-[48px] shadow-[0_64px_120px_-30px_rgba(79,70,229,0.4)] border border-white relative z-10 mx-4"
       >
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -234,12 +168,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         >
           {/* Header */}
           <motion.div variants={itemVariants} className="text-center mb-6 md:mb-10">
-            <motion.div 
+            <motion.div
               whileHover={{ rotate: 15, scale: 1.1 }}
               className="w-14 h-14 md:w-20 md:h-20 bg-indigo-600 rounded-[20px] md:rounded-[28px] flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-2xl shadow-indigo-200 relative group cursor-pointer"
             >
               <span className="text-white text-2xl md:text-4xl font-black">O</span>
-              <motion.div 
+              <motion.div
                 animate={{ opacity: [0, 1, 0], scale: [1, 1.5, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
                 className="absolute inset-0 bg-indigo-400 rounded-[28px] -z-10 blur-lg"
@@ -255,10 +189,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             {error && (
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
-                animate={{ 
-                  opacity: 1, 
+                animate={{
+                  opacity: 1,
                   x: [0, -10, 10, -10, 10, 0],
-                  transition: { duration: 0.4 } 
+                  transition: { duration: 0.4 }
                 }}
                 exit={{ opacity: 0, x: 20 }}
                 className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 text-rose-600 text-xs font-bold uppercase tracking-wider"
@@ -274,15 +208,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               <label className="text-[9px] md:text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] ml-1">Email</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   required
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
-                    if(error) setError(null);
+                    if (error) setError(null);
                   }}
-                  className="w-full pl-11 pr-5 py-3 md:py-4 bg-white/90 border border-slate-100 rounded-[16px] md:rounded-3xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 transition-all font-medium placeholder:text-slate-300 shadow-sm" 
+                  className="w-full pl-11 pr-5 py-3 md:py-4 bg-white/90 border border-slate-100 rounded-[16px] md:rounded-3xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 transition-all font-medium placeholder:text-slate-300 shadow-sm"
                   placeholder="name@company.com"
                 />
               </div>
@@ -292,15 +226,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               <label className="text-[9px] md:text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] ml-1">Password</label>
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
-                <input 
-                  type={showPassword ? "text" : "password"} 
+                <input
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
-                    if(error) setError(null);
+                    if (error) setError(null);
                   }}
-                  className="w-full pl-11 pr-12 py-3 md:py-4 bg-white/90 border border-slate-100 rounded-[16px] md:rounded-3xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 transition-all font-medium placeholder:text-slate-300 shadow-sm" 
+                  className="w-full pl-11 pr-12 py-3 md:py-4 bg-white/90 border border-slate-100 rounded-[16px] md:rounded-3xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 transition-all font-medium placeholder:text-slate-300 shadow-sm"
                   placeholder="••••••••"
                 />
                 <button
@@ -314,7 +248,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </motion.div>
 
             <motion.div variants={itemVariants}>
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
                 type="submit"
@@ -336,14 +270,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </motion.div>
           </form>
 
-          {/* Dummy Accounts Help */}
-          <motion.div variants={itemVariants} className="mt-8 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/30">
-             <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Dummy Access Info:</p>
-             <div className="space-y-1 text-[10px] font-bold text-slate-500">
-                <p>Super Admin: <span className="text-indigo-600">super@omniai.com</span> / password123</p>
-                <p>Admin: <span className="text-indigo-600">admin@omniai.com</span> / password123</p>
-             </div>
-          </motion.div>
         </motion.div>
       </motion.div>
     </div>

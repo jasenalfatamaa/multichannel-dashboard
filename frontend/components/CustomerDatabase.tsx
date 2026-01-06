@@ -84,8 +84,10 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
     e.preventDefault();
     if (!formData.name || !formData.email) return;
 
+    const nameSlug = formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
     const newCustomer: Customer = {
       id: Math.random().toString(36).substr(2, 9),
+      external_id: `manual-${nameSlug}-${Date.now()}`,
       name: formData.name,
       email: formData.email,
       phone: formData.phone || '+6281200000000',

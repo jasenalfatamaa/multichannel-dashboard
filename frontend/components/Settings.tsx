@@ -1,19 +1,19 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  User, 
-  BrainCircuit, 
-  Share2, 
-  Shield, 
-  CreditCard, 
-  Bell, 
-  Camera, 
-  Save, 
-  CheckCircle2, 
-  Zap, 
-  MessageCircle, 
-  Instagram, 
-  Send as TelegramIcon, 
+import {
+  User,
+  BrainCircuit,
+  Share2,
+  Shield,
+  CreditCard,
+  Bell,
+  Camera,
+  Save,
+  CheckCircle2,
+  Zap,
+  MessageCircle,
+  Instagram,
+  Send as TelegramIcon,
   Globe,
   Sparkles,
   ChevronRight,
@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserRole } from '../types';
+import { userService, authService } from '../services/apiService';
 
 type SettingsTab = 'profile' | 'ai' | 'channels' | 'security' | 'team' | 'billing';
 
@@ -73,81 +74,128 @@ const STORAGE_KEY = 'omniai_user_profile';
 const CHANNELS_KEY = 'omniai_active_channels';
 const TEAM_KEY = 'omniai_team_members';
 
-const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
+const Settings: React.FC<{ userSession: any, onRefreshSession?: () => void }> = ({ userSession, onRefreshSession }) => {
+  const userRole = userSession?.role || 'admin';
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [showToast, setShowToast] = useState<{show: boolean, msg: string}>({show: false, msg: ''});
-  
+  const [showToast, setShowToast] = useState<{ show: boolean, msg: string }>({ show: false, msg: '' });
+
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingChannel, setEditingChannel] = useState<IntegrationChannel | null>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-  
+
   // Team management state
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [showNewMemberPass, setShowNewMemberPass] = useState(false);
   const [resettingMember, setResettingMember] = useState<TeamMember | null>(null);
   const [showResetPass, setShowResetPass] = useState(false);
   const [newResetPassword, setNewResetPassword] = useState('');
-  
+
   const [newMember, setNewMember] = useState({ name: '', email: '', role: 'admin' as UserRole, password: '' });
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(() => {
-    const saved = localStorage.getItem(TEAM_KEY);
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+
+  // Fetch team members from backend
+  useEffect(() => {
+    if (userRole === 'super_admin') {
+      const fetchTeam = async () => {
+        try {
+          const members = await userService.list();
+          setTeamMembers(members);
+          localStorage.setItem(TEAM_KEY, JSON.stringify(members));
+        } catch (error) {
+          console.error("Failed to fetch team members:", error);
+          // Fallback to localStorage if offline
+          const saved = localStorage.getItem(TEAM_KEY);
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              // Filter out old dummy data if it somehow exists
+              const filtered = parsed.filter((m: any) => m.name !== 'Ahmad Kurniawan' && m.name !== 'Budi Santoso');
+              setTeamMembers(filtered);
+            } catch (e) { console.error(e); }
+          }
+        }
+      };
+      fetchTeam();
     }
-    return [
-      { id: 'tm-1', name: 'Ahmad Kurniawan', email: 'super@omniai.com', role: 'super_admin', status: 'Active', password: 'password123', avatar: 'https://i.pravatar.cc/150?u=super' },
-      { id: 'tm-2', name: 'Budi Santoso', email: 'admin@omniai.com', role: 'admin', status: 'Active', password: 'password123', avatar: 'https://i.pravatar.cc/150?u=admin' },
-    ];
-  });
+  }, [userRole]);
 
   // --- SECURITY STATES ---
   const [showCurrentPass, setShowCurrentPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
-  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
+  const [is2FAEnabled, setIs2FAEnabled] = useState(userSession?.two_factor_enabled || false);
   const [passData, setPassData] = useState({ current: '', new: '', confirm: '' });
-  const [sessions, setSessions] = useState<UserSession[]>([
-    { id: 'sess-1', device: 'Windows 11', browser: 'Chrome', location: 'Jakarta, ID', status: 'Current' },
-    { id: 'sess-2', device: 'iPhone 15 Pro', browser: 'Safari', location: 'Singapore', status: 'Active' },
-    { id: 'sess-3', device: 'Macbook Air', browser: 'Arc', location: 'Bandung, ID', status: 'Active' },
-  ]);
+  const [sessions, setSessions] = useState<UserSession[]>([]);
 
   // Profile State
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
+    const defaults = {
+      name: userSession?.name || 'User',
+      email: userSession?.email || '',
+      org: userSession?.org || 'My Organization',
+      timezone: userSession?.timezone || 'Jakarta (GMT+7)',
+      avatar: userSession?.avatar || 'https://i.pravatar.cc/150?u=user',
+      aiAutoReply: userSession?.ai_auto_reply !== undefined ? userSession.ai_auto_reply : true,
+      aiTone: userSession?.ai_tone || 'Friendly'
+    };
+
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        return { aiAutoReply: true, aiTone: 'Friendly', ...parsed };
+        // Prioritize session data for identity and config fields
+        return {
+          ...parsed,
+          name: userSession?.name || parsed.name,
+          email: userSession?.email || parsed.email,
+          avatar: userSession?.avatar || parsed.avatar,
+          org: userSession?.org || parsed.org,
+          timezone: userSession?.timezone || parsed.timezone,
+          aiAutoReply: userSession?.ai_auto_reply !== undefined ? userSession.ai_auto_reply : parsed.aiAutoReply,
+          aiTone: userSession?.ai_tone || parsed.aiTone
+        };
       } catch (e) { console.error(e); }
     }
-    return {
-      name: 'Ahmad Kurniawan',
-      email: 'admin@omniai.com',
-      org: 'OmniAI Tech Solutions',
-      timezone: 'Jakarta (GMT+7)',
-      avatar: 'https://i.pravatar.cc/150?u=admin',
-      aiAutoReply: true,
-      aiTone: 'Friendly'
-    };
+    return defaults;
   });
 
-  // Channels State
-  const [channels, setChannels] = useState<IntegrationChannel[]>(() => {
-    const saved = localStorage.getItem(CHANNELS_KEY);
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+  // Sync profile when userSession changes
+  useEffect(() => {
+    if (userSession) {
+      setProfile(prev => ({
+        ...prev,
+        name: userSession.name,
+        email: userSession.email,
+        avatar: userSession.avatar,
+        org: userSession.org,
+        timezone: userSession.timezone,
+        aiAutoReply: userSession.ai_auto_reply,
+        aiTone: userSession.ai_tone
+      }));
     }
-    return [
-      { id: 'ch-1', name: 'WhatsApp', type: 'whatsapp', account: '+62 812 9000 XXXX', status: 'Connected' },
-      { id: 'ch-2', name: 'Instagram', type: 'instagram', account: '@omni.official', status: 'Connected' },
-      { id: 'ch-3', name: 'Telegram', type: 'telegram', account: 'None', status: 'Inactive' },
-      { id: 'ch-4', name: 'E-commerce API', type: 'ecommerce', account: 'Shopify v2.1', status: 'Connected' },
-    ];
-  });
+  }, [userSession]);
+
+  // Channels State
+  const [channels, setChannels] = useState<IntegrationChannel[]>([]);
+
+  useEffect(() => {
+    const fetchIntegrations = async () => {
+      try {
+        const data = await authService.listIntegrations();
+        setChannels(data);
+      } catch (e) {
+        console.error("Failed to fetch integrations:", e);
+        const saved = localStorage.getItem(CHANNELS_KEY);
+        if (saved) {
+          try { setChannels(JSON.parse(saved)); } catch (er) { console.error(er); }
+        }
+      }
+    };
+    fetchIntegrations();
+  }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -156,15 +204,38 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
     setTimeout(() => setShowToast({ show: false, msg: '' }), 3000);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
+    try {
+      // Save profile and AI settings to backend
+      await authService.updateProfile({
+        name: profile.name,
+        avatar: profile.avatar,
+        org: profile.org,
+        timezone: profile.timezone,
+        ai_auto_reply: profile.aiAutoReply,
+        ai_tone: profile.aiTone
+      });
+
+      // Also save to localStorage as backup
       localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
       localStorage.setItem(CHANNELS_KEY, JSON.stringify(channels));
       localStorage.setItem(TEAM_KEY, JSON.stringify(teamMembers));
+
+      // If the current user updated their name/avatar, the team list should refresh
+      if (userRole === 'super_admin') {
+        const members = await userService.list();
+        setTeamMembers(members);
+      }
+
       setIsSaving(false);
       triggerToast("Settings saved successfully");
-    }, 1200);
+      if (onRefreshSession) onRefreshSession();
+    } catch (error) {
+      console.error("Failed to save profile:", error);
+      setIsSaving(false);
+      triggerToast("Failed to save settings to database");
+    }
   };
 
   const handleSyncKnowledge = () => {
@@ -184,24 +255,38 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
   };
 
   // --- INTEGRATION HANDLERS ---
-  const handleAddChannel = (type: IntegrationChannel['type']) => {
-    const names: Record<string, string> = { tiktok: 'TikTok', line: 'LINE' };
-    const newChannel: IntegrationChannel = {
-      id: `ch-${Math.random().toString(36).substr(2, 9)}`,
+  const handleAddChannel = async (type: IntegrationChannel['type']) => {
+    const names: Record<string, string> = {
+      whatsapp: 'WhatsApp Business',
+      instagram: 'Instagram Direct',
+      telegram: 'Telegram Bot',
+      tiktok: 'TikTok Shop',
+      line: 'LINE Official',
+      ecommerce: 'E-Commerce Store'
+    };
+
+    const channelData = {
       name: names[type] || 'New Channel',
       type: type,
-      account: type === 'line' ? '@line_official' : '@tiktok_biz',
-      status: 'Connected'
+      account: type === 'whatsapp' ? '+6281234567890' : (type === 'line' ? '@line_official' : `@omniai_${type}`),
+      status: 'Connected' as const
     };
-    
-    const updated = [...channels, newChannel];
-    setChannels(updated);
-    localStorage.setItem(CHANNELS_KEY, JSON.stringify(updated));
-    setIsAddModalOpen(false);
-    triggerToast(`${newChannel.name} Integrated Successfully`);
+
+    try {
+      const created = await authService.createIntegration(channelData);
+      const updated = [...channels, created];
+      setChannels(updated);
+      localStorage.setItem(CHANNELS_KEY, JSON.stringify(updated));
+      setIsAddModalOpen(false);
+      triggerToast(`${channelData.name} Integrated Successfully`);
+    } catch (e) {
+      console.error("Failed to add integration:", e);
+      triggerToast("Failed to connect channel");
+    }
   };
 
   const handleUpdateChannel = (updated: IntegrationChannel) => {
+    // For now, update local and storage (could add backend Patch later)
     const newChannels = channels.map(c => c.id === updated.id ? updated : c);
     setChannels(newChannels);
     localStorage.setItem(CHANNELS_KEY, JSON.stringify(newChannels));
@@ -209,44 +294,54 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
     triggerToast("Integration Detail Updated");
   };
 
-  const handleDeleteChannel = (id: string) => {
-    const newChannels = channels.filter(c => c.id !== id);
-    setChannels(newChannels);
-    localStorage.setItem(CHANNELS_KEY, JSON.stringify(newChannels));
-    setActiveMenuId(null);
-    triggerToast("Channel Disconnected");
+  const handleDeleteChannel = async (id: string) => {
+    try {
+      await authService.deleteIntegration(Number(id));
+      const newChannels = channels.filter(c => c.id !== id);
+      setChannels(newChannels);
+      localStorage.setItem(CHANNELS_KEY, JSON.stringify(newChannels));
+      setActiveMenuId(null);
+      triggerToast("Channel Disconnected");
+    } catch (e) {
+      console.error("Failed to delete integration:", e);
+      triggerToast("Failed to disconnect channel");
+    }
   };
 
   // --- TEAM MANAGEMENT HANDLERS ---
-  const handleAddTeamMember = () => {
+  const handleAddTeamMember = async () => {
     if (!newMember.name || !newMember.email || !newMember.password) return triggerToast("Please fill all fields");
-    const member: TeamMember = {
-      id: `tm-${Math.random().toString(36).substr(2, 9)}`,
-      name: newMember.name,
-      email: newMember.email,
-      role: newMember.role,
-      status: 'Active', // Set to Active for direct login
-      password: newMember.password,
-      avatar: `https://i.pravatar.cc/150?u=${newMember.name.replace(' ', '')}`
-    };
-    const updated = [...teamMembers, member];
-    setTeamMembers(updated);
-    localStorage.setItem(TEAM_KEY, JSON.stringify(updated));
-    setIsTeamModalOpen(false);
-    setNewMember({ name: '', email: '', role: 'admin', password: '' });
-    triggerToast(`${member.name} has been added to the team`);
+
+    try {
+      const createdMember = await userService.register({
+        name: newMember.name,
+        email: newMember.email,
+        role: newMember.role,
+        password: newMember.password
+      });
+
+      const updated = [...teamMembers, createdMember];
+      setTeamMembers(updated);
+      localStorage.setItem(TEAM_KEY, JSON.stringify(updated));
+      setIsTeamModalOpen(false);
+      setNewMember({ name: '', email: '', role: 'admin', password: '' });
+      triggerToast(`${createdMember.name} has been added to the team`);
+    } catch (error) {
+      console.error("Failed to add team member:", error);
+      triggerToast("Failed to add team member. Email may already exist.");
+    }
   };
 
   const handleResetPassword = () => {
     if (!resettingMember || !newResetPassword) return triggerToast("Password cannot be empty");
-    
+
     const updated = teamMembers.map(m => {
       if (m.id === resettingMember.id) {
         return { ...m, password: newResetPassword };
       }
       return m;
     });
-    
+
     setTeamMembers(updated);
     localStorage.setItem(TEAM_KEY, JSON.stringify(updated));
     setResettingMember(null);
@@ -254,15 +349,23 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
     triggerToast(`Password for ${resettingMember.name} has been reset`);
   };
 
-  const handleRemoveMember = (id: string) => {
-    const updated = teamMembers.filter(m => m.id !== id);
-    setTeamMembers(updated);
-    localStorage.setItem(TEAM_KEY, JSON.stringify(updated));
-    triggerToast("Member removed from team");
+  const handleRemoveMember = async (id: string) => {
+    try {
+      if (userRole === 'super_admin') {
+        await userService.delete(Number(id));
+      }
+      const updated = teamMembers.filter(m => m.id !== id);
+      setTeamMembers(updated);
+      localStorage.setItem(TEAM_KEY, JSON.stringify(updated));
+      triggerToast("Member removed from team");
+    } catch (error) {
+      console.error("Failed to remove member:", error);
+      triggerToast("Failed to remove member");
+    }
   };
 
   // --- SECURITY HANDLERS ---
-  const handlePasswordChange = () => {
+  const handlePasswordChange = async () => {
     if (!passData.current || !passData.new || !passData.confirm) {
       return triggerToast("Please fill all password fields");
     }
@@ -272,14 +375,21 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
     if (passData.new !== passData.confirm) {
       return triggerToast("New passwords do not match");
     }
-    
-    // Simulating API call
+
     setIsSaving(true);
-    setTimeout(() => {
+    try {
+      await authService.changePassword({
+        current_password: passData.current,
+        new_password: passData.new
+      });
       setIsSaving(false);
       triggerToast("Password successfully updated");
       setPassData({ current: '', new: '', confirm: '' });
-    }, 1000);
+    } catch (error: any) {
+      console.error("Failed to change password:", error);
+      setIsSaving(false);
+      triggerToast(error.response?.data?.detail || "Failed to update password");
+    }
   };
 
   const handleLogoutAllSessions = () => {
@@ -358,7 +468,7 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
                       <motion.div whileHover={{ scale: 1.02 }} className="relative cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                         <img src={profile.avatar} className="w-32 h-32 rounded-[40px] object-cover ring-4 ring-slate-50 shadow-xl transition-all group-hover:brightness-90" alt="avatar" />
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                           <Camera className="w-8 h-8 text-white drop-shadow-md" />
+                          <Camera className="w-8 h-8 text-white drop-shadow-md" />
                         </div>
                       </motion.div>
                       <button onClick={() => fileInputRef.current?.click()} className="absolute -bottom-2 -right-2 p-3 bg-indigo-600 text-white rounded-2xl shadow-lg hover:scale-110 transition-transform active:scale-95 z-10"><Camera className="w-5 h-5" /></button>
@@ -508,16 +618,16 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
                         <Key className="w-4 h-4 text-indigo-600" />
                         <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Update Password</h4>
                       </div>
-                      
+
                       <div className="space-y-4 p-6 bg-white border border-slate-100 rounded-[28px]">
                         <div className="space-y-1">
                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Current Password</label>
                           <div className="relative">
-                            <input 
+                            <input
                               type={showCurrentPass ? "text" : "password"}
                               value={passData.current}
-                              onChange={e => setPassData({...passData, current: e.target.value})}
-                              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium pr-12" 
+                              onChange={e => setPassData({ ...passData, current: e.target.value })}
+                              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium pr-12"
                               placeholder="••••••••"
                             />
                             <button onClick={() => setShowCurrentPass(!showCurrentPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300">
@@ -528,11 +638,11 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
                         <div className="space-y-1">
                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Password</label>
                           <div className="relative">
-                            <input 
+                            <input
                               type={showNewPass ? "text" : "password"}
                               value={passData.new}
-                              onChange={e => setPassData({...passData, new: e.target.value})}
-                              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium pr-12" 
+                              onChange={e => setPassData({ ...passData, new: e.target.value })}
+                              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium pr-12"
                               placeholder="Min. 8 characters"
                             />
                             <button onClick={() => setShowNewPass(!showNewPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300">
@@ -543,11 +653,11 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
                         <div className="space-y-1">
                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm New Password</label>
                           <div className="relative">
-                            <input 
+                            <input
                               type={showConfirmPass ? "text" : "password"}
                               value={passData.confirm}
-                              onChange={e => setPassData({...passData, confirm: e.target.value})}
-                              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium pr-12" 
+                              onChange={e => setPassData({ ...passData, confirm: e.target.value })}
+                              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium pr-12"
                               placeholder="••••••••"
                             />
                             <button onClick={() => setShowConfirmPass(!showConfirmPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300">
@@ -555,7 +665,7 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
                             </button>
                           </div>
                         </div>
-                        <button 
+                        <button
                           onClick={handlePasswordChange}
                           disabled={isSaving}
                           className="w-full py-3.5 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2"
@@ -580,14 +690,22 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
                               <ShieldCheck className="w-6 h-6" />
                             </div>
                             <div>
-                               <p className="text-xs font-black text-slate-800 uppercase tracking-widest">Authenticator App</p>
-                               <p className="text-[10px] text-slate-400 font-medium">Extra layer of protection</p>
+                              <p className="text-xs font-black text-slate-800 uppercase tracking-widest">Authenticator App</p>
+                              <p className="text-[10px] text-slate-400 font-medium">Extra layer of protection</p>
                             </div>
                           </div>
-                          <button 
-                            onClick={() => {
-                              setIs2FAEnabled(!is2FAEnabled);
-                              triggerToast(is2FAEnabled ? "2FA Disabled" : "2FA Enabled Successfully");
+                          <button
+                            onClick={async () => {
+                              try {
+                                const newValue = !is2FAEnabled;
+                                await authService.updateProfile({ two_factor_enabled: newValue });
+                                setIs2FAEnabled(newValue);
+                                triggerToast(newValue ? "2FA Enabled Successfully" : "2FA Disabled");
+                                if (onRefreshSession) onRefreshSession();
+                              } catch (e) {
+                                console.error("Failed to toggle 2FA:", e);
+                                triggerToast("Failed to update 2FA status");
+                              }
                             }}
                             className={`w-12 h-6 rounded-full p-1 transition-all duration-300 ${is2FAEnabled ? 'bg-indigo-600' : 'bg-slate-200'}`}
                           >
@@ -608,25 +726,25 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
                         <div className="divide-y divide-slate-50 border border-slate-100 rounded-[28px] overflow-hidden bg-white">
                           <AnimatePresence initial={false}>
                             {sessions.map((session) => (
-                              <motion.div 
-                                key={session.id} 
+                              <motion.div
+                                key={session.id}
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
                                 className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
                               >
-                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">
-                                      {session.device.includes('iPhone') ? <Smartphone className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
-                                    </div>
-                                    <div>
-                                      <p className="text-xs font-black text-slate-800 tracking-tight">{session.device} • {session.browser}</p>
-                                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{session.location}</p>
-                                    </div>
-                                 </div>
-                                 <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${session.status === 'Current' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-400 border border-slate-100'}`}>
-                                   {session.status}
-                                 </span>
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">
+                                    {session.device.includes('iPhone') ? <Smartphone className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-black text-slate-800 tracking-tight">{session.device} • {session.browser}</p>
+                                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{session.location}</p>
+                                  </div>
+                                </div>
+                                <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${session.status === 'Current' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-400 border border-slate-100'}`}>
+                                  {session.status}
+                                </span>
                               </motion.div>
                             ))}
                           </AnimatePresence>
@@ -652,43 +770,43 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
                   <div className="grid grid-cols-1 gap-4">
                     {teamMembers.map((member) => (
                       <div key={member.id} className="flex items-center justify-between p-6 bg-white rounded-[28px] border border-slate-100 hover:shadow-md transition-shadow group">
-                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
-                               <User className="w-6 h-6" />
-                            </div>
-                            <div>
-                               <h4 className="text-sm font-black text-slate-800">{member.name}</h4>
-                               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{member.email}</p>
-                            </div>
-                         </div>
-                         <div className="flex items-center gap-3">
-                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${member.role === 'super_admin' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
-                               {member.role.replace('_', ' ')}
-                            </span>
-                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${member.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
-                               {member.status}
-                            </span>
-                            
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button 
-                                onClick={() => {
-                                  setResettingMember(member);
-                                  setShowResetPass(false);
-                                  setNewResetPassword('');
-                                }} 
-                                className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
-                                title="Reset Password"
-                              >
-                                <RefreshCw className="w-5 h-5" />
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                            <User className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-black text-slate-800">{member.name}</h4>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{member.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${member.role === 'super_admin' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
+                            {member.role.replace('_', ' ')}
+                          </span>
+                          <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${member.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                            {member.status}
+                          </span>
+
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => {
+                                setResettingMember(member);
+                                setShowResetPass(false);
+                                setNewResetPassword('');
+                              }}
+                              className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                              title="Reset Password"
+                            >
+                              <RefreshCw className="w-5 h-5" />
+                            </button>
+
+                            {member.email !== 'super@omniai.com' && (
+                              <button onClick={() => handleRemoveMember(member.id)} className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all" title="Remove Member">
+                                <Trash2 className="w-5 h-5" />
                               </button>
-                              
-                              {member.email !== 'super@omniai.com' && (
-                                <button onClick={() => handleRemoveMember(member.id)} className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all" title="Remove Member">
-                                  <Trash2 className="w-5 h-5" />
-                                </button>
-                              )}
-                            </div>
-                         </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -790,12 +908,12 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Initial Password</label>
                   <div className="relative">
-                    <input 
-                      type={showNewMemberPass ? "text" : "password"} 
-                      value={newMember.password} 
-                      onChange={(e) => setNewMember({ ...newMember, password: e.target.value })} 
-                      className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium pr-12" 
-                      placeholder="••••••••" 
+                    <input
+                      type={showNewMemberPass ? "text" : "password"}
+                      value={newMember.password}
+                      onChange={(e) => setNewMember({ ...newMember, password: e.target.value })}
+                      className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium pr-12"
+                      placeholder="••••••••"
                     />
                     <button onClick={() => setShowNewMemberPass(!showNewMemberPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300">
                       {showNewMemberPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -834,12 +952,12 @@ const Settings: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Password</label>
                   <div className="relative">
-                    <input 
-                      type={showResetPass ? "text" : "password"} 
-                      value={newResetPassword} 
-                      onChange={(e) => setNewResetPassword(e.target.value)} 
-                      className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium pr-12" 
-                      placeholder="Min. 8 characters" 
+                    <input
+                      type={showResetPass ? "text" : "password"}
+                      value={newResetPassword}
+                      onChange={(e) => setNewResetPassword(e.target.value)}
+                      className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium pr-12"
+                      placeholder="Min. 8 characters"
                     />
                     <button onClick={() => setShowResetPass(!showResetPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300">
                       {showResetPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
