@@ -1,11 +1,18 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { Message } from "../types";
 
+// Using process.env.GEMINI_API_KEY which is mapped in vite.config.ts
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
 export const getAISuggestion = async (history: Message[], customerName: string): Promise<string> => {
-  // Fix: Create a new GoogleGenAI instance right before making an API call to ensure it always uses the most up-to-date API key
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  if (!GEMINI_API_KEY) {
+    console.error("GEMINI_API_KEY is not defined");
+    return "API Key tidak terkonfigurasi.";
+  }
+
+  const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
   const historyText = history.map(m => `${m.sender}: ${m.text}`).join('\n');
-  
+
   const prompt = `
     Context: You are a professional customer service assistant for OmniAI CRM.
     Customer Name: ${customerName}
@@ -18,7 +25,7 @@ export const getAISuggestion = async (history: Message[], customerName: string):
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-1.5-flash',
       contents: prompt,
       config: { temperature: 0.7 }
     });
@@ -34,11 +41,11 @@ export const getAISuggestion = async (history: Message[], customerName: string):
  */
 export const analyzeCustomerIntent = async (history: Message[]): Promise<string[]> => {
   if (history.length === 0) return ["New"];
+  if (!GEMINI_API_KEY) return ["New"];
 
-  // Fix: Create a new GoogleGenAI instance right before making an API call to ensure it always uses the most up-to-date API key
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
   const historyText = history.slice(-10).map(m => `${m.sender}: ${m.text}`).join('\n');
-  
+
   const prompt = `
     Analyze this chat history and return exactly 2-3 professional CRM tags that best describe this customer.
     Available categories to consider: VIP, Potential, Follow-up, Tech Support, High Priority, Positive Sentiment, Frustrated.
@@ -51,7 +58,7 @@ export const analyzeCustomerIntent = async (history: Message[]): Promise<string[
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-1.5-flash',
       contents: prompt,
       config: { temperature: 0.2 }
     });

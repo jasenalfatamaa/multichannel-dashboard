@@ -34,7 +34,7 @@ const App: React.FC = () => {
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>(MOCK_CONVERSATIONS);
   const [customers, setCustomers] = useState<Customer[]>(MOCK_CUSTOMERS);
-  
+
   // Check session on mount
   useEffect(() => {
     const savedSession = localStorage.getItem('omniai_current_session');
@@ -56,7 +56,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const syncWithAI = async () => {
       const newConvs = conversations.filter(conv => !customers.some(cust => cust.name === conv.customerName));
-      
+
       if (newConvs.length > 0) {
         const newCustomers: Customer[] = await Promise.all(newConvs.map(async conv => {
           const aiTags = await analyzeCustomerIntent(conv.messages);
@@ -77,6 +77,10 @@ const App: React.FC = () => {
     syncWithAI();
   }, [conversations, customers.length]);
 
+
+  // Ref to track mounting time to avoid replying to old mock messages
+  const appStartTime = useRef<number>(Date.now());
+
   // LOGIKA AUTO-REPLY
   useEffect(() => {
     const handleAutoReply = async () => {
@@ -84,7 +88,7 @@ const App: React.FC = () => {
       const savedProfile = localStorage.getItem('omniai_user_profile');
       let isAutoReplyEnabled = true;
       let aiTone = 'Friendly';
-      
+
       if (savedProfile) {
         try {
           const parsed = JSON.parse(savedProfile);
@@ -102,8 +106,13 @@ const App: React.FC = () => {
         if (conv.messages.length === 0) continue;
         const lastMsg = conv.messages[conv.messages.length - 1];
 
-        // Jika pesan terakhir dari user dan kita belum membalasnya secara otomatis
-        if (lastMsg.sender === 'user' && !repliedMessageIds.current.has(lastMsg.id)) {
+        // OPTIMASI: Hanya balas jika:
+        // 1. Pesan berasal dari 'user'
+        // 2. Belum pernah dibalas otomatis (ID ada di Set)
+        // 3. Pesan diterima SETELAH aplikasi dijalankan (mencegah spam ke mock history)
+        const isNewMessage = new Date(lastMsg.timestamp).getTime() > appStartTime.current;
+
+        if (lastMsg.sender === 'user' && !repliedMessageIds.current.has(lastMsg.id) && isNewMessage) {
           // Tandai sebagai sudah diproses
           repliedMessageIds.current.add(lastMsg.id);
 
@@ -238,8 +247,8 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-screen w-full bg-slate-50 overflow-hidden font-['Inter']">
-      <Sidebar 
-        activeView={currentView} 
+      <Sidebar
+        activeView={currentView}
         onViewChange={(view) => {
           setCurrentView(view);
           if (view !== 'chats') setSelectedChat(null);
@@ -250,7 +259,7 @@ const App: React.FC = () => {
       <main className="flex-1 flex overflow-hidden relative pb-20 md:pb-0">
         <AnimatePresence mode="wait">
           {currentView === 'chats' ? (
-            <motion.div 
+            <motion.div
               key="chats"
               variants={pageVariants}
               initial="initial"
@@ -260,8 +269,8 @@ const App: React.FC = () => {
               className="flex flex-1 overflow-hidden"
             >
               <div className={`${selectedChat ? 'hidden lg:block' : 'block'} w-full lg:w-80 h-full border-r border-slate-200`}>
-                <ChatInbox 
-                  conversations={conversations} 
+                <ChatInbox
+                  conversations={conversations}
                   selectedId={selectedChat?.id || null}
                   onSelect={setSelectedChat}
                 />
@@ -270,18 +279,18 @@ const App: React.FC = () => {
               <div className={`${selectedChat ? 'flex' : 'hidden lg:flex'} flex-1 flex-col relative bg-white h-full overflow-hidden`}>
                 {selectedChat ? (
                   <div className="flex flex-1 overflow-hidden relative h-full">
-                    <ChatWindow 
-                      conversation={selectedChat} 
+                    <ChatWindow
+                      conversation={selectedChat}
                       onSendMessage={handleSendMessage}
                       onToggleAI={() => setShowAIPanel(!showAIPanel)}
                       onToggleStatus={handleToggleStatus}
                       onBack={() => setSelectedChat(null)}
                     />
-                    
+
                     <AnimatePresence>
                       {showAIPanel && (
                         <>
-                          <motion.div 
+                          <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -289,30 +298,30 @@ const App: React.FC = () => {
                             onClick={() => setShowAIPanel(false)}
                           />
                           <div className="z-50 lg:z-0 lg:relative lg:h-full">
-                             <AISuggestionPanel 
-                               conversation={selectedChat}
-                               onApplySuggestion={handleSendMessage}
-                               onClose={() => setShowAIPanel(false)}
-                             />
+                            <AISuggestionPanel
+                              conversation={selectedChat}
+                              onApplySuggestion={handleSendMessage}
+                              onClose={() => setShowAIPanel(false)}
+                            />
                           </div>
                         </>
                       )}
                     </AnimatePresence>
                   </div>
                 ) : (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="flex-1 hidden lg:flex items-center justify-center text-slate-400 bg-slate-50/50"
                   >
                     <div className="text-center">
-                      <motion.div 
+                      <motion.div
                         animate={{ y: [0, -10, 0] }}
                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                         className="mb-6 flex justify-center"
                       >
                         <div className="p-6 rounded-[32px] bg-white shadow-xl shadow-indigo-100/50 border border-slate-100">
-                           <img src="https://img.icons8.com/ios-filled/100/4f46e5/chat.png" className="w-16 h-16 opacity-20" alt="chat" />
+                          <img src="https://img.icons8.com/ios-filled/100/4f46e5/chat.png" className="w-16 h-16 opacity-20" alt="chat" />
                         </div>
                       </motion.div>
                       <h3 className="text-xl font-black text-slate-800 mb-2">OmniAI Inbox</h3>
@@ -323,7 +332,7 @@ const App: React.FC = () => {
               </div>
             </motion.div>
           ) : (
-            <motion.div 
+            <motion.div
               key={currentView}
               variants={pageVariants}
               initial="initial"
@@ -335,7 +344,7 @@ const App: React.FC = () => {
               {currentView === 'contacts' && <CustomerDatabase customers={customers} onAddCustomer={handleAddCustomer} onDeleteCustomer={handleDeleteCustomer} onStartChat={handleStartChat} />}
               {currentView === 'training' && <AITraining />}
               {currentView === 'dashboard' && <DashboardOverview conversations={conversations} customers={customers} />}
-              {currentView === 'settings' && <Settings userRole={userSession?.role || 'admin'} />} 
+              {currentView === 'settings' && <Settings userRole={userSession?.role || 'admin'} />}
             </motion.div>
           )}
         </AnimatePresence>

@@ -11,6 +11,8 @@ RUN npm run test
 
 # Stage 3: Build - Build the production application
 FROM base AS build
+ARG GEMINI_API_KEY
+ENV GEMINI_API_KEY=$GEMINI_API_KEY
 COPY . .
 RUN npm run build
 
