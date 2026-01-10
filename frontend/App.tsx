@@ -339,7 +339,7 @@ const App: React.FC = () => {
               animate="animate"
               exit="exit"
               transition={pageTransition}
-              className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar"
+              className="flex-1 h-full p-4 md:p-8 overflow-y-auto custom-scrollbar"
             >
               {currentView === 'contacts' && <CustomerDatabase customers={customers} onAddCustomer={handleAddCustomer} onDeleteCustomer={handleDeleteCustomer} onStartChat={handleStartChat} />}
               {currentView === 'training' && <AITraining />}

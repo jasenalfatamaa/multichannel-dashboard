@@ -18,7 +18,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, onLogout })
       <motion.aside
         initial={{ x: -80 }}
         animate={{ x: 0 }}
-        className="hidden md:flex w-20 h-screen bg-white border-r border-slate-200 flex-col items-center py-8 z-50"
+        className="hidden md:flex w-20 h-screen sticky top-0 bg-white border-r border-slate-200 flex-col items-center py-8 z-50 flex-shrink-0"
       >
         <div className="mb-10">
           <motion.div
@@ -42,8 +42,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, onLogout })
                 onClick={() => onViewChange(item.id as View)}
                 title={item.label}
                 className={`p-3 rounded-xl transition-all duration-200 group relative ${isActive
-                    ? 'bg-indigo-50 text-indigo-600 shadow-sm'
-                    : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
+                  ? 'bg-indigo-50 text-indigo-600 shadow-sm'
+                  : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
                   }`}
               >
                 <motion.div
