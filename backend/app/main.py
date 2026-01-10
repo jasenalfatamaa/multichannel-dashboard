@@ -52,8 +52,6 @@ async def startup_event():
             print(f"DONE: Default admin created with email: {admin_email}")
         else:
             print(f"Admin user already exists: {admin_email}")
-    except Exception as e:
-        print(f"CRITICAL ERROR creating default admin: {e}")
     finally:
         db.close()
 

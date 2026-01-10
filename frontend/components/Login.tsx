@@ -25,7 +25,6 @@ import {
   Cloud,
   Cpu,
   Layers,
-  Monitor,
   Smartphone,
   Bell,
   Calendar,
@@ -39,12 +38,13 @@ import { authService } from '../services/apiService';
 
 interface LoginProps {
   onLogin: (session: UserSession) => void;
+  isDemoMode?: boolean;
 }
 
 const TEAM_KEY = 'omniai_team_members';
 const STORAGE_KEY = 'omniai_user_profile';
 
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC<LoginProps> = ({ onLogin, isDemoMode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -62,10 +62,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       onLogin(session);
     } catch (err: any) {
       console.error("Login error:", err);
-      setError(err.response?.data?.detail || 'Email atau password salah. Coba lagi.');
+      // If it's a network error, the interceptor already set isDemoMode = true
+      setError(err.response?.data?.detail || 'Gagal terhubung ke server. Silakan coba Demo Mode.');
       setIsLoading(false);
     }
   };
+
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -106,7 +108,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     { icon: Cloud, x: '90%', y: '88%', size: 48, duration: 22, delay: 3.8 },
     { icon: Cpu, x: '35%', y: '15%', size: 40, duration: 34, delay: 1.5 },
     { icon: Layers, x: '75%', y: '65%', size: 42, duration: 28, delay: 6.2 },
-    { icon: Monitor, x: '50%', y: '30%', size: 45, duration: 31, delay: 0.4 },
     { icon: Smartphone, x: '12%', y: '68%', size: 48, duration: 25, delay: 4.8 },
     { icon: Bell, x: '88%', y: '8%', size: 38, duration: 19, delay: 2.6 },
     { icon: Calendar, x: '25%', y: '92%', size: 35, duration: 36, delay: 5.5 },
@@ -269,6 +270,23 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </motion.button>
             </motion.div>
           </form>
+
+          {/* MOCK CREDENTIALS HINT - Only shown in Demo Mode */}
+          {isDemoMode && (
+            <motion.div variants={itemVariants} className="mt-8 pt-6 border-t border-slate-50 text-center">
+              <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-3">Portfolio Credentials</p>
+              <div className="flex items-center justify-center gap-4">
+                <div className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                  <span className="text-[10px] text-slate-400 font-medium block">Email</span>
+                  <span className="text-[11px] text-slate-600 font-bold">super@omniai.com</span>
+                </div>
+                <div className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                  <span className="text-[10px] text-slate-400 font-medium block">Password</span>
+                  <span className="text-[11px] text-slate-600 font-bold">password123</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
         </motion.div>
       </motion.div>

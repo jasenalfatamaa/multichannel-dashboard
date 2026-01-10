@@ -36,7 +36,10 @@ import {
   ShieldCheck,
   AlertTriangle,
   Users,
-  RefreshCw
+  RefreshCw,
+  Facebook,
+  ShoppingBag,
+  Store
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserRole } from '../types';
@@ -47,7 +50,7 @@ type SettingsTab = 'profile' | 'ai' | 'channels' | 'security' | 'team' | 'billin
 interface IntegrationChannel {
   id: string;
   name: string;
-  type: 'whatsapp' | 'instagram' | 'telegram' | 'tiktok' | 'line' | 'ecommerce';
+  type: 'whatsapp' | 'instagram' | 'telegram' | 'tiktok' | 'line' | 'ecommerce' | 'messenger' | 'shopee' | 'tokopedia';
   account: string;
   status: 'Connected' | 'Inactive';
 }
@@ -262,13 +265,25 @@ const Settings: React.FC<{ userSession: any, onRefreshSession?: () => void }> = 
       telegram: 'Telegram Bot',
       tiktok: 'TikTok Shop',
       line: 'LINE Official',
-      ecommerce: 'E-Commerce Store'
+      ecommerce: 'E-Commerce Store',
+      messenger: 'FB Messenger',
+      shopee: 'Shopee Store',
+      tokopedia: 'Tokopedia Store'
+    };
+
+    const accounts: Record<string, string> = {
+      whatsapp: '+6281234567890',
+      line: '@line_official',
+      messenger: 'fb.me/omniai_biz',
+      shopee: 'shopee.co.id/omniai',
+      tokopedia: 'tokopedia.com/omniai',
+      tiktok: '@omniai_shop'
     };
 
     const channelData = {
       name: names[type] || 'New Channel',
       type: type,
-      account: type === 'whatsapp' ? '+6281234567890' : (type === 'line' ? '@line_official' : `@omniai_${type}`),
+      account: accounts[type] || `@omniai_${type}`,
       status: 'Connected' as const
     };
 
@@ -406,6 +421,9 @@ const Settings: React.FC<{ userSession: any, onRefreshSession?: () => void }> = 
       case 'tiktok': return { icon: Music, color: 'text-slate-900', bg: 'bg-slate-100' };
       case 'line': return { icon: MessageSquare, color: 'text-emerald-600', bg: 'bg-emerald-50' };
       case 'ecommerce': return { icon: Globe, color: 'text-indigo-500', bg: 'bg-indigo-50' };
+      case 'messenger': return { icon: Facebook, color: 'text-blue-600', bg: 'bg-blue-50' };
+      case 'shopee': return { icon: ShoppingBag, color: 'text-orange-600', bg: 'bg-orange-50' };
+      case 'tokopedia': return { icon: Store, color: 'text-emerald-500', bg: 'bg-emerald-50' };
       default: return { icon: Share2, color: 'text-slate-500', bg: 'bg-slate-50' };
     }
   };
@@ -835,14 +853,21 @@ const Settings: React.FC<{ userSession: any, onRefreshSession?: () => void }> = 
                 <h3 className="text-xl font-black text-slate-900 tracking-tight">Connect Channel</h3>
                 <button onClick={() => setIsAddModalOpen(false)} className="p-2 hover:bg-slate-50 rounded-xl text-slate-400"><X className="w-5 h-5" /></button>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                 {[
+                  { type: 'whatsapp', name: 'WhatsApp', icon: MessageCircle },
+                  { type: 'instagram', name: 'Instagram', icon: Instagram },
+                  { type: 'telegram', name: 'Telegram', icon: TelegramIcon },
+                  { type: 'messenger', name: 'Messenger', icon: Facebook },
                   { type: 'tiktok', name: 'TikTok', icon: Music },
                   { type: 'line', name: 'LINE', icon: MessageSquare },
+                  { type: 'shopee', name: 'Shopee', icon: ShoppingBag },
+                  { type: 'tokopedia', name: 'Tokopedia', icon: Store },
+                  { type: 'ecommerce', name: 'Other Web', icon: Globe },
                 ].map(opt => (
-                  <button key={opt.type} onClick={() => handleAddChannel(opt.type as any)} className="p-5 border border-slate-100 rounded-[24px] hover:border-indigo-600 hover:bg-indigo-50 transition-all flex flex-col items-center gap-3 group">
-                    <opt.icon className="w-8 h-8 text-slate-400 group-hover:text-indigo-600" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-indigo-600">{opt.name}</span>
+                  <button key={opt.type} onClick={() => handleAddChannel(opt.type as any)} className="p-4 border border-slate-100 rounded-[20px] hover:border-indigo-600 hover:bg-indigo-50 transition-all flex flex-col items-center gap-2 group">
+                    <opt.icon className="w-6 h-6 text-slate-400 group-hover:text-indigo-600" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 group-hover:text-indigo-600">{opt.name}</span>
                   </button>
                 ))}
               </div>

@@ -20,6 +20,7 @@ export interface Message {
 
 export interface Conversation {
   id: string;
+  customerId?: string; // ID dari DB jika sudah ada, optional untuk skeleton
   customerName: string;
   avatar: string;
   channel: Channel;

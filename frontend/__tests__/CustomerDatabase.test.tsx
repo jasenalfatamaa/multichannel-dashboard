@@ -7,7 +7,7 @@ import { MOCK_CUSTOMERS } from '../constants';
 describe('CustomerDatabase Component', () => {
     const mockOnAdd = vi.fn();
     const mockOnDelete = vi.fn();
-    const mockOnStartChat = vi.fn();
+    const mockOnStartChat = vi.fn((_customer) => { });
 
     it('renders customer list', () => {
         render(

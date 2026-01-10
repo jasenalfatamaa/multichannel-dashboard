@@ -28,7 +28,7 @@ interface CustomerDatabaseProps {
   customers: Customer[];
   onAddCustomer?: (customer: Customer) => void;
   onDeleteCustomer?: (id: string) => void;
-  onStartChat?: (customerName: string) => void;
+  onStartChat?: (customer: Customer) => void;
 }
 
 const tableVariants = {
@@ -146,9 +146,9 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2 }}
-        className="bg-white rounded-[24px] sm:rounded-[32px] border border-slate-200 shadow-sm overflow-hidden"
+        className="bg-white rounded-[24px] sm:rounded-[32px] border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[70vh] min-h-[500px]"
       >
-        <div className="p-4 md:p-6 border-b border-slate-100 flex items-center justify-between bg-white/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="p-4 md:p-6 border-b border-slate-100 flex-shrink-0 flex items-center justify-between bg-white/50 backdrop-blur-sm sticky top-0 z-20">
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
@@ -162,7 +162,7 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
         </div>
 
         {/* MOBILE & TABLET LIST VIEW (Hidden on md and up) */}
-        <div className="block md:hidden">
+        <div className="block md:hidden flex-1 overflow-y-auto custom-scrollbar">
           <motion.div
             variants={tableVariants}
             initial="hidden"
@@ -203,9 +203,9 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
         </div>
 
         {/* DESKTOP TABLE VIEW (Hidden on mobile/tablet) */}
-        <div className="hidden md:block overflow-x-auto custom-scrollbar">
+        <div className="hidden md:block flex-1 overflow-y-auto custom-scrollbar relative">
           <table className="w-full text-left min-w-[900px]">
-            <thead className="bg-slate-50/50">
+            <thead className="bg-slate-50/80 backdrop-blur-md sticky top-0 z-10">
               <tr>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Customer</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Source</th>
@@ -279,7 +279,9 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
                     </td>
                     <td className="px-6 py-5">
                       <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                        {customer.lastActive.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {customer.lastActive instanceof Date && !isNaN(customer.lastActive.getTime())
+                          ? customer.lastActive.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+                          : 'No Activity'}
                       </span>
                     </td>
                     <td className="px-6 py-5">
@@ -324,7 +326,7 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
                                 </button>
                                 <button
                                   onClick={() => {
-                                    onStartChat?.(customer.name);
+                                    onStartChat?.(customer);
                                     setActiveMenuId(null);
                                   }}
                                   className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50 text-slate-600 transition-colors"
@@ -497,7 +499,7 @@ const CustomerDatabase: React.FC<CustomerDatabaseProps> = ({
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => {
-                        onStartChat?.(viewingCustomer.name);
+                        onStartChat?.(viewingCustomer);
                         setViewingCustomer(null);
                       }}
                       className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl hover:bg-indigo-100 transition-colors shadow-sm"

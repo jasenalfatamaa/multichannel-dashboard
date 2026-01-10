@@ -1,12 +1,12 @@
 
 import React from 'react';
-import { 
-  MessageCircle, 
-  Instagram, 
-  Send, 
-  LayoutDashboard, 
-  Users, 
-  Settings, 
+import {
+  MessageCircle,
+  Instagram,
+  Send,
+  LayoutDashboard,
+  Users,
+  Settings,
   BrainCircuit
 } from 'lucide-react';
 import { Conversation, Customer, Channel, Message } from './types';
@@ -22,7 +22,7 @@ const generateHistory = (baseId: string, totalMessages: number, startDate: Date)
   const msgs: Message[] = [];
   const startTime = startDate.getTime();
   const now = Date.now();
-  
+
   for (let i = 0; i < totalMessages; i++) {
     const timestamp = new Date(startTime + Math.random() * (now - startTime));
     msgs.push({
@@ -46,7 +46,7 @@ const generateHistory = (baseId: string, totalMessages: number, startDate: Date)
 };
 
 const customerNames = [
-  'Ahmad Kurniawan', 'Siti Sarah', 'Budi Santoso', 'Rina Marlina', 'Jessica Wong', 
+  'Ahmad Kurniawan', 'Siti Sarah', 'Budi Santoso', 'Rina Marlina', 'Jessica Wong',
   'Denny Huang', 'Andi Pratama', 'Maya Indah', 'Kevin Sanjaya', 'Lestari Putri',
   'Rian Hidayat', 'Dewi Lestari', 'Fajar Nugraha', 'Eka Putra', 'Indah Permata',
   'Guntur Bumi', 'Hana Sofia', 'Irfan Hakim', 'Joko Susilo', 'Kartika Sari',
@@ -62,7 +62,7 @@ export const MOCK_CONVERSATIONS: Conversation[] = customerNames.map((name, idx) 
   const startDaysAgo = Math.floor(Math.random() * 30);
   const startedAt = daysAgo(startDaysAgo, Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
   const msgHistory = generateHistory(`msg-${idx}`, 10 + Math.floor(Math.random() * 15), startedAt);
-  
+
   let resolvedAt = undefined;
   if (status === 'resolved') {
     const resolveTime = startedAt.getTime() + (Math.random() * 2 * 24 * 60 * 60 * 1000);
@@ -99,6 +99,37 @@ export const MOCK_CUSTOMERS: Customer[] = MOCK_CONVERSATIONS.map(conv => ({
   avatar: conv.avatar,
   source: 'chat' as const
 }));
+
+export const MOCK_USER: any = {
+  id: 1,
+  name: "Portofolio User",
+  email: "demo@omniai.com",
+  role: "super_admin",
+  avatar: "https://i.pravatar.cc/150?u=portofolio",
+  org: "Demo Project",
+  timezone: "Jakarta (GMT+7)",
+  ai_auto_reply: true,
+  ai_tone: "Friendly",
+  two_factor_enabled: false
+};
+
+export const MOCK_INTEGRATIONS: any[] = [
+  { id: 1, name: "WhatsApp Main", type: "whatsapp", account: "+6281234567890", status: "Connected" },
+  { id: 2, name: "IG Business", type: "instagram", account: "@omniai_demo", status: "Connected" },
+  { id: 3, name: "Telegram Bot", type: "telegram", account: "@omniai_bot", status: "Inactive" },
+  { id: 4, name: "Shopee Shop", type: "shopee", account: "shopee.co.id/omniai", status: "Connected" }
+];
+
+export const MOCK_KNOWLEDGE: any[] = [
+  { id: 1, name: "Company Profile.pdf", size: "2.4 MB", status: "ready", created_at: new Date() },
+  { id: 2, name: "Product Catalog 2024.docx", size: "1.1 MB", status: "ready", created_at: new Date() }
+];
+
+export const MOCK_TEAM: any[] = [
+  { id: 1, name: "Portofolio User", email: "demo@omniai.com", role: "super_admin", avatar: "https://i.pravatar.cc/150?u=portofolio", status: "Active" },
+  { id: 2, name: "Ahmad Sales", email: "ahmad@omniai.com", role: "admin", avatar: "https://i.pravatar.cc/150?u=AhmadSales", status: "Active" },
+  { id: 3, name: "Siti Support", email: "siti@omniai.com", role: "admin", avatar: "https://i.pravatar.cc/150?u=SitiSupport", status: "Active" }
+];
 
 export const CHANNEL_ICONS: Record<Channel, React.ReactNode> = {
   whatsapp: <MessageCircle className="w-4 h-4 text-emerald-500" />,
